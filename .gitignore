@@ -28,3 +28,20 @@ datasets/
 
 # OS
 .DS_Store
+# Data / embeddings / cache
+data/
+triplet_cache/
+**/__pycache__/
+*.pkl
+*.pt
+*.pth
+*.ckpt
+*.npy
+*.npz
+*.csv
+*.tsv
+*.h5
+*.hdf5
+*.parquet
+*.feather
+*.safetensors
