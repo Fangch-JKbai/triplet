@@ -45,3 +45,10 @@ triplet_cache/
 *.parquet
 *.feather
 *.safetensors
+# Large visualization outputs
+src/*coordinates.csv
+distance_dict.pkl
+distance_heatmap.png
+
+# cache (你这里其实已经进过历史)
+triplet_cache/
