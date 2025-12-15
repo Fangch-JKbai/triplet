@@ -1,0 +1,28 @@
+{
+    "metadata": {
+        "description": "Final evaluation results for the experiment.",
+        "note": "Metrics are macro-averaged over all samples in the test set."
+    },
+    "results": {
+        "price": {
+            "f1_at_fixed_tau_0.35": 0.3635346756152125,
+            "precision_at_fixed_tau_0.35": 0.36129753914988816,
+            "recall_at_fixed_tau_0.35": 0.3691275167785235,
+            "auc": 0.6635416666666667,
+            "f1_max": 0.4874720357941834,
+            "precision_at_f1_max": 0.4519015659955258,
+            "recall_at_f1_max": 0.5805369127516778,
+            "avg_best_threshold": 1.306443353627352
+        },
+        "new": {
+            "f1_at_fixed_tau_0.35": 0.5560009718172984,
+            "precision_at_fixed_tau_0.35": 0.5748299319727891,
+            "recall_at_fixed_tau_0.35": 0.5622448979591836,
+            "auc": 0.6296913580246913,
+            "f1_max": 0.6263362487852283,
+            "precision_at_f1_max": 0.6252368804664723,
+            "recall_at_f1_max": 0.6654397473275024,
+            "avg_best_threshold": 1.7710714510508947
+        }
+    }
+}

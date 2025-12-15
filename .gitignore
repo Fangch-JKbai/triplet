@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Conda / venv
+.env
+.venv
+conda_env/
+env/
+
+# Deep Learning
+checkpoints/
+*.ckpt
+*.pth
+*.pt
+*.onnx
+
+# Data
+data/
+datasets/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
