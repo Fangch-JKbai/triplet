@@ -1,0 +1,117 @@
+📁 项目文件索引
+================================================================================
+
+## 🆕 新创建的文档和工具（我刚刚为你创建的）
+
+├── START_HERE.md                    ⭐ 快速上手指南（从这里开始！）
+├── README_QUICK_START.md            详细的快速开始文档
+├── WORKFLOW.md                      完整工作流程说明
+├── config_template.py               配置文件模板（带详细注释）
+├── run_complete_workflow.sh         自动化执行脚本（可执行）
+├── check_config.py                  配置检查脚本
+└── FILE_INDEX.txt                   本文件（文件索引）
+
+## 📂 源代码目录 (src/)
+
+### 主要入口文件
+├── src/main_kfold.py               ★ 五折交叉验证主程序
+├── src/main.py                     ★ 单次训练主程序
+└── src/main_improved.py            改进版主程序（可选）
+
+### 核心模块
+├── src/config.py                   ★ 配置文件（需要修改！）
+├── src/trainer.py                  ★ 训练器（ExperimentRunner）
+├── src/trainer_v3.py               训练器v3版本
+├── src/model.py                    ★ EC分类模型
+├── src/model_improved.py           改进版模型
+├── src/datasets.py                 ★ 数据集类（ContrastiveDataset等）
+├── src/loss.py                     ★ SupCon损失函数
+├── src/samplers.py                 ★ PK采样器
+
+### 评估模块
+├── src/evaluation.py               评估脚本v1
+├── src/evaluation_v2.py            ★ 评估脚本v2（主要使用）
+├── src/evaluation_v3.py            评估脚本v3
+
+### 数据处理
+├── src/data_utils.py               ★ 数据加载工具
+├── src/create_fixed_split.py       创建固定划分
+
+### 可视化与分析
+├── src/vis.py                      可视化工具
+├── src/visualization.py            可视化脚本
+├── src/compare_experiments.py      实验比较
+├── src/decision_boundary_experiment.py  决策边界实验
+├── src/intrinsic_evaluation.py     内在评估
+
+### 其他工具
+├── src/utils.py                    通用工具函数
+├── src/hyperparam_search.py        超参数搜索
+├── src/train_model.py              训练模型脚本
+└── src/regenerate_report.py        重新生成报告
+
+## 📂 根目录其他文件
+
+### 脚本文件
+├── scripts/1_generate_protein_embeddings.py    生成蛋白质embedding
+├── scripts/2_calculate_ec_embeddings.py        计算EC embedding
+├── scripts/3_create_distance_map.py            创建距离图
+└── scripts/mtl_esm.py                          多任务学习ESM
+
+### 根目录Python文件
+├── train.py                        根目录训练脚本
+├── optimized_train.py              优化版训练
+├── generate.py                     生成脚本
+├── test.py                         测试脚本
+├── test_2.py                       测试脚本2
+├── create_distance_map.py          创建距离图
+├── dataset.py                      数据集
+├── ec.py                           EC相关
+├── ec_model.py                     EC模型
+└── utils.py                        工具函数
+
+### Shell脚本
+└── run.sh                          运行脚本
+
+## 📊 实验结果目录（训练后自动生成）
+
+experiments/
+├── <run_name>_KFold/              五折交叉验证结果
+│   ├── fold_1/                    第1折
+│   │   ├── best_model.pth         最佳模型
+│   │   ├── loss_curve.png         损失曲线
+│   │   ├── predictions_*.csv      预测结果
+│   │   └── final_evaluation_results.json
+│   ├── fold_2/
+│   ├── ...
+│   └── final_cross_validation_summary.json  ★ 聚合结果
+│
+└── <run_name>/                    最终训练结果
+    ├── best_model.pth             ★ 最终模型
+    ├── final_evaluation_results.json  ★ 测试结果
+    ├── predictions_price.csv      Price数据集预测
+    ├── predictions_new.csv        New数据集预测
+    ├── loss_curve.png             损失曲线图
+    └── experiment.log             完整日志
+
+## 🎯 推荐的阅读/使用顺序
+
+1. START_HERE.md                   快速了解如何开始
+2. README_QUICK_START.md           详细的执行指南
+3. 修改 src/config.py              配置数据路径等
+4. 运行 python src/main_kfold.py  五折交叉验证
+5. 修改 src/config.py              改成final_training模式
+6. 运行 python src/main.py        最终训练
+7. WORKFLOW.md                     需要时查阅详细文档
+
+## 💡 关键提示
+
+★ = 重要文件，训练时会用到
+⭐ = 新创建的文档，建议先阅读
+
+所有配置参数都在: src/config.py
+所有训练日志都在: experiments/<run_name>/experiment.log
+所有模型和结果都在: experiments/<run_name>/
+
+================================================================================
+祝训练顺利！
