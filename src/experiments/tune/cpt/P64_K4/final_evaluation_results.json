@@ -1,0 +1,7 @@
+{
+    "metadata": {
+        "description": "Final evaluation results for the experiment.",
+        "note": "Metrics are macro-averaged over all samples in the test set."
+    },
+    "results": {}
+}

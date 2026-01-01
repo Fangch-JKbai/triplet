@@ -1,0 +1,14 @@
+{
+  "best_P": 16,
+  "best_K": 16,
+  "mean_f1": 0.869191013261635,
+  "std_f1": 0.007923937585920936,
+  "mean_precision": 0.8708599161536285,
+  "mean_recall": 0.8722739086826474,
+  "ckpt_path": "experiments/tune/sub/P16_K16/best_model.pth",
+  "seed": 2025,
+  "n_splits": 5,
+  "cv_k": 3,
+  "cv_tau": 0.35,
+  "epochs": 500
+}

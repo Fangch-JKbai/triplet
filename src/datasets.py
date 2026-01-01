@@ -59,7 +59,6 @@ class ContrastiveDataset(Dataset):
         seq_id = self.ids[idx]
         embedding = self._load_embed(seq_id)
         
-        # <<< CHANGE 2: 返回整数标签列表，而不是字符串列表 >>>
         str_labels = self.id_to_ecs_map.get(seq_id, [])
         int_labels = [self.ec_to_int[ec] for ec in str_labels if ec in self.ec_to_int]
         
@@ -78,12 +77,11 @@ def contrastive_collate_fn(batch):
     single_labels = []
     
     for item in batch:
-        # <<< CHANGE 3: item['labels'] 已经是整数列表 >>>
         if item['labels']:
             embeddings.append(item['embedding_1280'])
             
             # 随机选择一个EC号作为此次的标签
-            chosen_label = random.choice(item['labels'])
+            chosen_label = sorted(item['labels'])[0]
             single_labels.append(chosen_label)
 
     if not embeddings:

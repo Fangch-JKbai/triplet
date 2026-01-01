@@ -18,7 +18,7 @@ from model import EcClassifier
 from datasets import ContrastiveDataset, EvaluationDataset, contrastive_collate_fn
 from evaluation_v2 import evaluation_collate_fn, Evaluator
 from loss import SupervisedContrastiveLoss
-from samplers import PKSampler
+from triplet.src.pk_sampler_v1_backup import PKSampler
 from trainer import ExperimentRunner
 
 def set_seeds(seed):

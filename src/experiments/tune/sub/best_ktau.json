@@ -1,0 +1,28 @@
+{
+  "best_k": 3,
+  "best_tau": 0.35,
+  "mean_f1": 0.869191013261635,
+  "std_f1": 0.007923937585920936,
+  "mean_precision": 0.8708599161536285,
+  "mean_recall": 0.8722739086826474,
+  "ckpt_path": "experiments/tune/sub/P16_K16/best_model.pth",
+  "seed": 2025,
+  "n_splits": 5,
+  "k_search_space": [
+    3,
+    5,
+    7,
+    10
+  ],
+  "tau_search_space": [
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55
+  ]
+}

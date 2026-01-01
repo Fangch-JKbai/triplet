@@ -1,5 +1,5 @@
 # 文件名: scripts/1_generate_protein_embeddings.py
-# 优化版本：统一使用 EnzSubModelForDownstream 加载所有模型
+# 优化版本：使用 Masking 策略进行数据增强 + 统一加载模型
 
 import argparse
 import torch
@@ -27,7 +27,7 @@ ESM_MODELS_CONFIG = {
     },
     # CPT only (Stage-1 continued pretraining)
     "ESM_CPT": {
-        "checkpoint_path": "/home/fangchh/workdir/enzyme/cpt_span/output/span_cpt_2gpu_15mask_6layer_final/checkpoint_epoch_4.pt",
+        "checkpoint_path": "/home/fangchh/workdir/enzyme/cpt_span/output/span_cpt_2gpu_15mask_6layer_final/checkpoint_epoch_2.pt",
         "load_lora": False,
     },
     # ESM-2 + LoRA (Stage-2 only, 无CPT基础)
@@ -42,11 +42,7 @@ ESM_MODELS_CONFIG = {
     },
 }
 
-# 标准氨基酸字母表
-AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
-
-
-# ============== 数据增强功能区 ==============
+# ============== 数据增强功能区 (修改为 Masking 策略) ==============
 
 def get_ec_id_dict(csv_path: str) -> Tuple[Dict[str, List[str]], Dict[str, Set[str]]]:
     """解析CSV文件，创建序列ID和EC号之间的映射。"""
@@ -72,34 +68,49 @@ def get_ec_id_dict(csv_path: str) -> Tuple[Dict[str, List[str]], Dict[str, Set[s
     return id_ec_map, ec_id_map
 
 
-def mutate_sequence(seq: str, mutation_rate: float) -> str:
-    """对序列进行随机突变，将氨基酸替换为随机的其他氨基酸。"""
+def apply_random_masking(seq: str) -> str:
+    """
+    对序列进行随机 Masking (方法一)。
+    策略：
+    1. 基于正态分布(mu=0.1, sigma=0.02)确定 mask 比例。
+    2. 随机选择位置替换为 '<mask>'。
+    """
     seq_len = len(seq)
-    num_mutations = min(math.ceil(seq_len * mutation_rate), seq_len)
-    mutated_seq = list(seq)
-    positions = random.sample(range(seq_len), k=num_mutations)
-    for pos in positions:
-        original_aa = mutated_seq[pos].upper()
-        # 选择一个不同的氨基酸
-        candidates = [aa for aa in AMINO_ACIDS if aa != original_aa]
-        if candidates:
-            mutated_seq[pos] = random.choice(candidates)
-    return "".join(mutated_seq)
+    seq_list = list(seq) # 转为列表以便修改
+    
+    # 1. 确定突变率 (使用 numpy 生成正态分布随机数)
+    mu, sigma = 0.10, 0.02
+    mut_rate = np.random.normal(mu, sigma)
+    
+    # 限制突变率在合理范围内 (例如 0 到 100%)
+    mut_rate = max(0.0, min(1.0, mut_rate))
+    
+    # 2. 计算需要 Mask 的数量
+    num_masks = math.ceil(seq_len * mut_rate)
+    
+    # 3. 随机选择位置 (使用 sample 无放回采样，防止重复 mask 同一个位置)
+    if num_masks > 0:
+        positions = random.sample(range(seq_len), k=min(num_masks, seq_len))
+        for pos in positions:
+            seq_list[pos] = "X" # 插入 ESM 专用的 mask token
+            
+    return "".join(seq_list)
 
 
 def create_mutated_fasta(
     csv_path: str, 
     output_fasta_path: str,
-    num_mutations_per_seq: int = 10
+    num_augmentations: int = 10
 ) -> bool:
-    """为那些只对应一个序列的EC号生成突变序列，作为数据增强。"""
-    print("\n--- Starting Data Augmentation: Mutating Sequences ---")
+    """为那些只对应一个序列的EC号生成 Masked 序列，作为数据增强。"""
+    print("\n--- Starting Data Augmentation: Masking Sequences ---")
     id_ec_map, ec_id_map = get_ec_id_dict(csv_path)
     if not ec_id_map:
         return False
 
+    # 找出只有一条序列的 EC 号对应的 Seq ID
     single_ec_ids = {ids.pop() for ec, ids in ec_id_map.items() if len(ids) == 1}
-    print(f"Found {len(single_ec_ids)} sequences belonging to single-entry ECs to mutate.")
+    print(f"Found {len(single_ec_ids)} sequences belonging to single-entry ECs to augment.")
     if not single_ec_ids:
         return False
 
@@ -109,45 +120,43 @@ def create_mutated_fasta(
             
             reader = csv.reader(csv_file, delimiter='\t')
             header = next(reader)
-            seq_col_idx = header.index('Sequence')
-            total_mutations = 0
+            # 自动寻找 Sequence 列的索引，如果找不到默认第3列(索引2)
+            try:
+                seq_col_idx = header.index('Sequence')
+            except ValueError:
+                seq_col_idx = 2 
+
+            total_generated = 0
 
             for row in reader:
-                seq_id, sequence = row[0], row[seq_col_idx]
+                seq_id = row[0]
                 if seq_id in single_ec_ids:
-                    for i in range(num_mutations_per_seq):
-                        rate = np.random.normal(loc=0.10, scale=0.02)
-                        mutated_seq = mutate_sequence(sequence, rate)
-                        fasta_file.write(f">{seq_id}_{i}\n")
-                        fasta_file.write(f"{mutated_seq}\n")
-                        total_mutations += 1
+                    sequence = row[seq_col_idx].strip()
+                    
+                    # 对每一条需要增强的序列，生成 num_augmentations 个变体
+                    for i in range(num_augmentations):
+                        masked_seq = apply_random_masking(sequence)
+                        
+                        # 写入 FASTA
+                        fasta_file.write(f">{seq_id}_mask_{i}\n")
+                        fasta_file.write(f"{masked_seq}\n")
+                        total_generated += 1
             
-        print(f"Successfully generated {total_mutations} mutated sequences in: {output_fasta_path}")
+        print(f"Successfully generated {total_generated} masked sequences in: {output_fasta_path}")
         return True
-    except (FileNotFoundError, ValueError) as e:
-        print(f"Error during mutated FASTA creation: {e}")
+    except (FileNotFoundError, ValueError, IndexError) as e:
+        print(f"Error during masked FASTA creation: {e}")
         return False
 
 
 # ============== 模型加载与嵌入生成区 ==============
 
 def ensure_dirs(path):
-    """确保目录存在"""
     if not os.path.exists(path):
         os.makedirs(path)
 
 
 def load_model_by_name(model_name: str, device: str = "cuda:0"):
-    """
-    根据模型名称加载模型（统一使用 EnzSubModelForDownstream）
-    
-    Args:
-        model_name: 模型名称 (ESM_2, ESM_CPT, ESM_SUB, ESM_CPT_SUB)
-        device: 计算设备
-    
-    Returns:
-        EnzSubModelForDownstream 实例
-    """
     if model_name not in ESM_MODELS_CONFIG:
         raise ValueError(f"Unknown model: {model_name}. Available: {list(ESM_MODELS_CONFIG.keys())}")
     
@@ -195,16 +204,6 @@ def generate_embeddings(
     batch_size: int = 16,
     max_len: int = 1022
 ):
-    """
-    使用 EnzSubModelForDownstream 生成嵌入
-    
-    Args:
-        model: EnzSubModelForDownstream 实例
-        fasta_file: FASTA文件路径
-        output_dir: 输出目录
-        batch_size: 批次大小
-        max_len: 最大序列长度
-    """
     ensure_dirs(output_dir)
     
     seq_ids, sequences = read_fasta(fasta_file)
@@ -215,13 +214,9 @@ def generate_embeddings(
             batch_ids = seq_ids[i:i + batch_size]
             batch_seqs = [s[:max_len] if len(s) > max_len else s for s in sequences[i:i + batch_size]]
             
-            # 构造输入数据格式
             data = list(zip(batch_ids, batch_seqs))
-            
-            # 使用模型的 get_embedding 方法
             embeddings = model.get_embedding(data)
             
-            # 保存每个序列的嵌入
             for j, seq_id in enumerate(batch_ids):
                 out_path = os.path.join(output_dir, f"{seq_id}.pt")
                 torch.save({
@@ -236,46 +231,46 @@ def generate_embeddings(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate protein embeddings using unified EnzSubModelForDownstream."
+        description="Generate protein embeddings using unified EnzSubModelForDownstream with Masking Augmentation."
     )
     
-    # 模型参数（简化版）
+    # 模型参数
     parser.add_argument("--model-name", type=str, required=True,
-                       choices=list(ESM_MODELS_CONFIG.keys()),
-                       help="Model name to use (ESM_2, ESM_CPT, ESM_SUB, ESM_CPT_SUB)")
+                        choices=list(ESM_MODELS_CONFIG.keys()),
+                        help="Model name to use (ESM_2, ESM_CPT, ESM_SUB, ESM_CPT_SUB)")
     
     # 数据参数
     parser.add_argument("--fasta-files", type=str, nargs='+', required=True,
-                       help="List of input FASTA files.")
+                        help="List of input FASTA files.")
     parser.add_argument("--output-dir", type=str, required=True,
-                       help="Directory to save embeddings.")
+                        help="Directory to save embeddings.")
     parser.add_argument("--batch-size", type=int, default=16,
-                       help="Batch size for inference.")
+                        help="Batch size for inference.")
     parser.add_argument("--device", type=str, 
-                       default='cuda:9' if torch.cuda.is_available() else 'cpu',
-                       help="Device to use.")
+                        default='cuda:9' if torch.cuda.is_available() else 'cpu',
+                        help="Device to use.")
 
     # 数据增强参数
     parser.add_argument("--run-mutation", action="store_true",
-                       help="Set to run the sequence mutation data augmentation.")
+                        help="Set to run the sequence Masking data augmentation.")
     parser.add_argument("--csv-file", type=str,
-                       help="[For Mutation] CSV file containing sequences and EC numbers.")
+                        help="[For Augmentation] CSV file containing sequences and EC numbers.")
     
     args = parser.parse_args()
     
-    # --- 数据增强步骤 ---
+    # --- 数据增强步骤 (Masking) ---
     if args.run_mutation:
         if not args.csv_file:
             raise ValueError("--csv-file is required when using --run-mutation.")
         
-        mutated_fasta_path = os.path.join(os.path.dirname(args.csv_file), "mutated_sequences.fasta")
+        # 修改输出文件名为 masked_sequences.fasta 以示区分
+        mutated_fasta_path = os.path.join(os.path.dirname(args.csv_file), "masked_sequences.fasta")
         success = create_mutated_fasta(args.csv_file, mutated_fasta_path)
         
-        # 如果成功生成了突变文件，将其加入待处理列表
         if success and mutated_fasta_path not in args.fasta_files:
             args.fasta_files.append(mutated_fasta_path)
 
-    # --- 模型加载（统一接口）---
+    # --- 模型加载 ---
     model = load_model_by_name(args.model_name, args.device)
 
     # --- Embedding 生成 ---

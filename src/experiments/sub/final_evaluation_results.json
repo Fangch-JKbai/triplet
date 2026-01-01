@@ -1,0 +1,22 @@
+{
+    "metadata": {
+        "description": "Final evaluation results for the experiment.",
+        "note": "Metrics are macro-averaged over all samples in the test set."
+    },
+    "results": {
+        "price": {
+            "f1": 0.39306487695749437,
+            "precision": 0.3763982102908277,
+            "recall": 0.4429530201342282,
+            "auc": 0.7433335699006566,
+            "auc_macro": 0.7319020104856513
+        },
+        "new": {
+            "f1": 0.6036341917719469,
+            "precision": 0.6164965986394557,
+            "recall": 0.6133078231292517,
+            "auc": 0.8100862721474896,
+            "auc_macro": 0.8275977114352754
+        }
+    }
+}

@@ -358,26 +358,26 @@ def main():
     MODEL_CONFIGS = {
         'ESM-2': {
             'checkpoint_path': '/home/fangchh/workdir/triplet/src/experiments/train_final_2025-11-20_03-14-15/best_model.pth',
-            'embedding_dir': '/home/fangchh/workdir/triplet/data/base/protein_embeddings'
+            'embedding_dir': '/home/fangchh/workdir/triplet/data/ESM_2/protein_embeddings'
         },
         'ESM_CPT': {
             'checkpoint_path': '/home/fangchh/workdir/triplet/src/experiments/train_final_2025-11-19_12-41-24/best_model.pth',
-            'embedding_dir': '/home/fangchh/workdir/triplet/data/ESM_CPT_1117/protein_embeddings'  # <-- [!] 请核实此路径
+            'embedding_dir': '/home/fangchh/workdir/triplet/data/ESM_CPT/protein_embeddings'
         },
         'ESM_SFT': {
-            'checkpoint_path': '/home/fangchh/workdir/triplet/src/experiments/ESM_SFT/fold_2/best_model.pth',
-            'embedding_dir': '/home/fangchh/workdir/triplet/data/ESM_SFT/protein_embeddings'  # <-- [!] 请核实此路径
+            'checkpoint_path': '/home/fangchh/workdir/triplet/src/experiments/sub/best_model.pth',
+            'embedding_dir': '/home/fangchh/workdir/triplet/data/ESM_SUB/protein_embeddings'
         },
         'ESM_ENZ': {
-            'checkpoint_path': '/home/fangchh/workdir/triplet/src/experiments/ESM_ENZ/fold_2/best_model.pth',
-            'embedding_dir': '/home/fangchh/workdir/triplet/data/ESM_ENZ/protein_embeddings'  # <-- [!] 请核实此路径
+            'checkpoint_path': '/home/fangchh/workdir/triplet/src/experiments/ESM_ENZ/best_model.pth',
+            'embedding_dir': '/home/fangchh/workdir/triplet/data/ESM_CPT_SUB/protein_embeddings'
         }
     }
     
     OUTPUT_DIR = 'decision_boundary_experiment'
     
     # ==========================================================
-    # 🚀 实验开始
+    #  实验开始
     # ==========================================================
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -415,7 +415,7 @@ def main():
     logging.info(f"Loaded {len(price_ids)} Price-149 sample IDs")
     
     # ==========================================================
-    # 🗄️ 加载 Gallery（训练集） (仅加载 ID 和 标签)
+    #  加载 Gallery（训练集） (仅加载 ID 和 标签)
     # ==========================================================
     logging.info("\n" + "="*80)
     logging.info("Loading Gallery (training set IDs and Labels)...")
